@@ -3,11 +3,10 @@ groq==0.15.0
 python-dotenv==1.0.1
 requests==2.31.0
 elevenlabs==1.50.3
-SpeechRecognition==3.10.1
+numpy>=1.26.0
 Pillow==10.2.0
-numpy==1.24.3
+opencv-python-headless==4.8.0.74
 pydub==0.25.1
 gtts==2.5.4
 python-multipart==0.0.6
 ffmpeg-python==0.2.0
-opencv-python-headless==4.8.0.74
