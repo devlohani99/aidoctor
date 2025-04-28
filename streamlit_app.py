@@ -2,7 +2,7 @@ import streamlit as st
 import os
 from dotenv import load_dotenv
 from brain_of_the_doctor import encode_image, analyze_image_with_query
-from voice_of_the_patient import transcribe_with_groq
+from voice_of_the_patient import process_audio_file, transcribe_with_groq
 from voice_of_the_doctor import text_to_speech_with_elevenlabs
 
 # Load environment variables
@@ -26,14 +26,14 @@ st.markdown("""
 
 # Title
 st.title("AI Doctor")
-st.markdown("Upload an image and/or record audio to get medical analysis")
+st.markdown("Upload an image and/or audio file to get medical analysis")
 
 # Create two columns
 col1, col2 = st.columns(2)
 
 with col1:
     # Audio input
-    audio_file = st.file_uploader("Record or Upload Audio", type=['wav', 'mp3'])
+    audio_file = st.file_uploader("Upload Audio", type=['wav', 'mp3'])
     
     # Image input
     image_file = st.file_uploader("Upload Image", type=['jpg', 'jpeg', 'png'])
@@ -46,19 +46,18 @@ with col2:
                 speech_to_text_output = ""
                 if audio_file:
                     # Save temporary audio file
-                    with open("temp_audio.wav", "wb") as f:
-                        f.write(audio_file.getbuffer())
-                    
-                    speech_to_text_output = transcribe_with_groq(
-                        GROQ_API_KEY=os.environ.get("GROQ_API_KEY"),
-                        audio_filepath="temp_audio.wav",
-                        stt_model="whisper-large-v3"
-                    )
-                    st.text_area("Speech to Text", speech_to_text_output, height=100)
+                    temp_audio_path = "temp_audio.mp3"
+                    if process_audio_file(audio_file, temp_audio_path):
+                        speech_to_text_output = transcribe_with_groq(
+                            GROQ_API_KEY=os.environ.get("GROQ_API_KEY"),
+                            audio_filepath=temp_audio_path,
+                            stt_model="whisper-large-v3"
+                        )
+                        st.text_area("Speech to Text", speech_to_text_output, height=100)
                     
                     # Clean up temp file
-                    if os.path.exists("temp_audio.wav"):
-                        os.remove("temp_audio.wav")
+                    if os.path.exists(temp_audio_path):
+                        os.remove(temp_audio_path)
 
                 # Process image if provided
                 if image_file:
