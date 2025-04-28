@@ -66,23 +66,27 @@ input_text="Hi this is your personalised medibot, autoplay testing!"
 
 
 def text_to_speech_with_elevenlabs(input_text, output_filepath):
-    import os
-    
-    # Create temp directory if it doesn't exist
-    temp_dir = os.path.dirname(output_filepath)
-    os.makedirs(temp_dir, exist_ok=True)
-    
-    # Generate audio using ElevenLabs
-    client = ElevenLabs(api_key=ELEVENLABS_API_KEY)
-    audio = client.generate(
-        text=input_text,
-        voice="Aria",
-        output_format="mp3_22050_32",
-        model="eleven_turbo_v2"
-    )
-    
-    # Save directly to output file
-    elevenlabs.save(audio, output_filepath)
-    return output_filepath
+    try:
+        # Set API key
+        api_key = os.environ.get("ELEVENLABS_API_KEY")
+        if not api_key:
+            raise ValueError("ELEVENLABS_API_KEY not found in environment variables")
+        elevenlabs.set_api_key(api_key)
+        
+        # Generate audio
+        audio = elevenlabs.generate(
+            text=input_text,
+            voice="Aria",
+            model="eleven_turbo_v2"
+        )
+        
+        # Save the audio file
+        elevenlabs.save(audio, output_filepath)
+        return output_filepath
+        
+    except Exception as e:
+        print(f"Error in text to speech: {str(e)}")
+        # Fallback to gTTS if ElevenLabs fails
+        return text_to_speech_with_gtts(input_text, output_filepath)
 
 #text_to_speech_with_elevenlabs(input_text, output_filepath="elevenlabs_testing_autoplay.mp3")
